@@ -1,0 +1,27 @@
+package Project_Capstone;
+
+import processing.core.*;
+
+
+// Using the processing package https://processing.org/reference/
+public class Map_Creation extends PApplet{
+	UnfoldingMap map;
+	private PImage backgroundImg;
+	private String URL = "https://images.trvl-media.com/media/content/shared/images/travelguides/destination/178279/Big-Ben-20648.jpg";
+	
+	
+	public void setup() {
+		size(900, 500);
+		backgroundImg = loadImage(URL, "jpg");
+		map = 
+		
+	}
+	
+	public void draw() {
+		backgroundImg.resize(0, height);
+		image(backgroundImg,0,0);
+
+	}
+
+
+}
