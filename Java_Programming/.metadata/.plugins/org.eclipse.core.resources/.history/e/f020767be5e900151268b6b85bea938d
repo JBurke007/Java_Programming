@@ -1,0 +1,182 @@
+package module3;
+
+//Java utilities libraries
+import java.util.ArrayList;
+//import java.util.Collections;
+//import java.util.Comparator;
+import java.util.List;
+
+//Processing library
+import processing.core.PApplet;
+import processing.core.PImage;
+//Unfolding libraries
+import de.fhpotsdam.unfolding.UnfoldingMap;
+import de.fhpotsdam.unfolding.marker.Marker;
+import de.fhpotsdam.unfolding.data.PointFeature;
+import de.fhpotsdam.unfolding.geo.Location;
+import de.fhpotsdam.unfolding.marker.SimplePointMarker;
+import de.fhpotsdam.unfolding.providers.Google;
+import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
+import de.fhpotsdam.unfolding.utils.MapUtils;
+import de.fhpotsdam.unfolding.providers.AbstractMapProvider;
+
+//Parsing library
+import parsing.ParseFeed;
+
+/** EarthquakeCityMap
+ * An application with an interactive map displaying earthquake data.
+ * Author: James Burke
+ * */
+public class EarthquakeCityMap extends PApplet {
+	
+	// image for the Applet background
+	private PImage backgroundImg;
+	private String URL = "https://images.trvl-media.com/media/content/shared/images/travelguides/destination/178279/Big-Ben-20648.jpg";
+	
+	// You can ignore this.  It's to keep eclipse from generating a warning.
+	private static final long serialVersionUID = 1L;
+
+	// IF YOU ARE WORKING OFFLINE, change the value of this variable to true
+	private static final boolean offline = false;
+	
+	// Less than this threshold is a light earthquake
+	public static final float THRESHOLD_MODERATE = 5;
+	// Less than this threshold is a minor earthquake
+	public static final float THRESHOLD_LIGHT = 4;
+
+	/** This is where to find the local tiles, for working without an Internet connection */
+	public static String mbTilesString = "blankLight-1-3.mbtiles";
+	
+	// The map
+	private UnfoldingMap map;
+	
+	//feed with magnitude 2.5+ Earthquakes
+	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
+
+	// Setting the colors of the markers  
+    int yellow = color(255, 255, 0);
+    int red = color(255, 0, 0);
+    int blue = color(0, 0, 255);
+    
+	public void setup() {
+		size(950, 600, OPENGL);
+//		this.background(200, 200, 200);
+		backgroundImg = loadImage(URL, "jpg");
+
+		if (offline) {
+		    map = new UnfoldingMap(this, 200, 50, 700, 500, new MBTilesMapProvider(mbTilesString));
+		    earthquakesURL = "2.5_week.atom"; 	// Same feed, saved Aug 7, 2015, for working offline
+		}
+		else {
+			map = new UnfoldingMap(this, 200, 50, 700, 500, new Google.GoogleMapProvider());
+			// IF YOU WANT TO TEST WITH A LOCAL FILE, uncomment the next line
+			//earthquakesURL = "2.5_week.atom";
+		}
+		
+	    map.zoomToLevel(2);
+	    MapUtils.createDefaultEventDispatcher(this, map);	
+//	    map.zoomAndPanTo(2, new Location(32.9f, -117.2f));
+	    // The List you will populate with new SimplePointMarkers
+	    List<Marker> markers = new ArrayList<Marker>();
+
+	    //Use provided parser to collect properties for each earthquake
+	    //PointFeatures have a getLocation method
+	    List<PointFeature> earthquakes = ParseFeed.parseEarthquake(this, earthquakesURL);
+	    
+	    for(int i =0; i<earthquakes.size(); i++){
+	    	PointFeature f = earthquakes.get(i);
+	    	// Prints out the coordinates of the marker
+//	    	System.out.println(f.getLocation());    	
+//	    	map.addMarker(createMarker(f));
+	    	markers.add(createMarker(f));
+//	    	println(f.getProperties());
+//	    	Properties are: depth, magnitude, title, age
+	    }
+	    
+	    // iterates over the earthquake data to assign size and color based on magnitude of earthquake
+	    for(int i=0; i<markers.size(); i++){
+	    	PointFeature d = earthquakes.get(i);
+	    	float mag = (float) d.getProperty("magnitude");
+	    	if(mag < 4){
+		    	markers.get(i).setColor(color(blue));
+//		    	markers.get(i).setStrokeColor(blue);
+//		    	markers.get(i).setStrokeWeight(1);
+		    	((SimplePointMarker) markers.get(i)).setRadius(5);	    		
+	    	}
+	    	else if(mag <=4.9){
+		    	markers.get(i).setColor(color(yellow));
+//		    	markers.get(i).setStrokeColor(yellow);
+//		    	markers.get(i).setStrokeWeight(1);
+		    	((SimplePointMarker) markers.get(i)).setRadius(10);
+	    	}
+	    	else if(mag >4.9){
+	    		markers.get(i).setColor(color(255,0,0,100));
+		    	markers.get(i).setStrokeColor(red);
+		    	markers.get(i).setStrokeWeight(2);
+		    	((SimplePointMarker) markers.get(i)).setRadius(15);
+	    	}
+	    }
+	    // Plotting all markers that are added the marker list above.
+	    map.addMarkers(markers);
+	    
+	    // These print statements show you (1) all of the relevant properties 
+	    // in the features, and (2) how to get one property and use it
+	    if (earthquakes.size() > 0) {
+	    	PointFeature f = earthquakes.get(0);
+	    	System.out.println(f.getProperties());
+	    	Object magObj = f.getProperty("magnitude");
+	    	float mag = Float.parseFloat(magObj.toString());	    
+	    }	  
+	}
+		
+	// A method to get the location for each earthquake in the RSS Feed
+	private SimplePointMarker createMarker(PointFeature p)
+	{
+		return new SimplePointMarker(p.getLocation());	
+	}
+	
+	public void draw() {
+		backgroundImg.resize(0, height);
+		image(backgroundImg,0,0);
+//	    background(10);
+	    map.draw();
+	    addKey();
+	}
+
+
+	// helper method to draw key in GUI
+	// TODO: Implement this method to draw the key
+	private void addKey() 
+	{	
+		fill(255, 250, 240);
+		int xbase = 25;
+		int ybase = 50;
+		rect(xbase, ybase, 150, 250);
+		
+		fill(0);
+		textAlign(LEFT, CENTER);
+		textSize(12);
+		text("Earthquake Key", xbase+25, ybase+25);
+		// Setting the minor earthquakes legend details
+		fill(blue);
+		ellipse(xbase+25, ybase+60, 5, 5);
+//		noStroke();
+		fill(10);
+		text("Mag < 4", xbase+45, ybase+60);
+		// Setting the intermediate earthquakes legend details		
+		fill(yellow);
+		ellipse(xbase+25, ybase+90, 10, 10);
+//		noStroke();	
+		fill(10);
+		text("Mag < 4.9", xbase+45, ybase+90);
+		// Setting the major earthquakes legend details
+		fill(red);
+		ellipse(xbase+25, ybase+120, 15, 15);
+		fill(color(255,0,0,100));
+		strokeWeight(2);
+		line(10,10,10,10);
+//		line(red,10);
+		text("Mag > 5", xbase+45, ybase+120);		
+		
+	}
+}

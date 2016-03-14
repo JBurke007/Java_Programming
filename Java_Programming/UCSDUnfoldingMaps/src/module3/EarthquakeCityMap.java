@@ -8,7 +8,7 @@ import java.util.List;
 
 //Processing library
 import processing.core.PApplet;
-
+import processing.core.PImage;
 //Unfolding libraries
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.marker.Marker;
@@ -28,7 +28,11 @@ import parsing.ParseFeed;
  * Author: James Burke
  * */
 public class EarthquakeCityMap extends PApplet {
-
+	
+	// image for the Applet background
+	private PImage backgroundImg;
+	private String URL = "https://images.trvl-media.com/media/content/shared/images/travelguides/destination/178279/Big-Ben-20648.jpg";
+	
 	// You can ignore this.  It's to keep eclipse from generating a warning.
 	private static final long serialVersionUID = 1L;
 
@@ -49,9 +53,15 @@ public class EarthquakeCityMap extends PApplet {
 	//feed with magnitude 2.5+ Earthquakes
 	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
 
-	
+	// Setting the colors of the markers  
+    int yellow = color(255, 255, 0);
+    int red = color(255, 0, 0);
+    int blue = color(0, 0, 255);
+    
 	public void setup() {
 		size(950, 600, OPENGL);
+//		this.background(200, 200, 200);
+		backgroundImg = loadImage(URL, "jpg");
 
 		if (offline) {
 		    map = new UnfoldingMap(this, 200, 50, 700, 500, new MBTilesMapProvider(mbTilesString));
@@ -76,13 +86,36 @@ public class EarthquakeCityMap extends PApplet {
 	    for(int i =0; i<earthquakes.size(); i++){
 	    	PointFeature f = earthquakes.get(i);
 	    	// Prints out the coordinates of the marker
-//	    	System.out.println(f.getLocation());	    	
+//	    	System.out.println(f.getLocation());    	
 //	    	map.addMarker(createMarker(f));
 	    	markers.add(createMarker(f));
 //	    	println(f.getProperties());
 //	    	Properties are: depth, magnitude, title, age
 	    }
 	    
+	    // iterates over the earthquake data to assign size and color based on magnitude of earthquake
+	    for(int i=0; i<markers.size(); i++){
+	    	PointFeature d = earthquakes.get(i);
+	    	float mag = (float) d.getProperty("magnitude");
+	    	if(mag < 4){
+		    	markers.get(i).setColor(color(blue));
+//		    	markers.get(i).setStrokeColor(blue);
+//		    	markers.get(i).setStrokeWeight(1);
+		    	((SimplePointMarker) markers.get(i)).setRadius(5);	    		
+	    	}
+	    	else if(mag <=4.9){
+		    	markers.get(i).setColor(color(yellow));
+//		    	markers.get(i).setStrokeColor(yellow);
+//		    	markers.get(i).setStrokeWeight(1);
+		    	((SimplePointMarker) markers.get(i)).setRadius(10);
+	    	}
+	    	else if(mag >4.9){
+	    		markers.get(i).setColor(color(255,0,0,100));
+		    	markers.get(i).setStrokeColor(red);
+		    	markers.get(i).setStrokeWeight(2);
+		    	((SimplePointMarker) markers.get(i)).setRadius(15);
+	    	}
+	    }
 	    // Plotting all markers that are added the marker list above.
 	    map.addMarkers(markers);
 	    
@@ -92,16 +125,8 @@ public class EarthquakeCityMap extends PApplet {
 	    	PointFeature f = earthquakes.get(0);
 	    	System.out.println(f.getProperties());
 	    	Object magObj = f.getProperty("magnitude");
-	    	float mag = Float.parseFloat(magObj.toString());
-	    	// PointFeatures also have a getLocation method
-	    	
-	    }
-	    
-	    // Here is an example of how to use Processing's color method to generate 
-	    // an int that represents the color yellow.  
-	    int yellow = color(255, 255, 0);
-	    
-	    //TODO: Add code here as appropriate
+	    	float mag = Float.parseFloat(magObj.toString());	    
+	    }	  
 	}
 		
 	// A method to get the location for each earthquake in the RSS Feed
@@ -111,9 +136,11 @@ public class EarthquakeCityMap extends PApplet {
 	}
 	
 	public void draw() {
-	    background(10);
+		backgroundImg.resize(0, height);
+		image(backgroundImg,0,0);
+//	    background(10);
 	    map.draw();
-//	    addKey();
+	    addKey();
 	}
 
 
@@ -121,7 +148,38 @@ public class EarthquakeCityMap extends PApplet {
 	// TODO: Implement this method to draw the key
 	private void addKey() 
 	{	
-		// Remember you can use Processing's graphics methods here
-	
+		fill(255, 250, 240);
+		int xbase = 25;
+		int ybase = 50;
+		rect(xbase, ybase, 150, 250);
+		
+		fill(0);
+		textAlign(LEFT, CENTER);
+		textSize(12);
+		text("Earthquake Key", xbase+25, ybase+25);
+		// Setting the minor earthquakes legend details
+		fill(blue);
+		strokeWeight(1);
+		ellipse(xbase+25, ybase+60, 5, 5);
+//		noStroke();
+		fill(10);
+		text("Mag < 4", xbase+45, ybase+60);
+		// Setting the intermediate earthquakes legend details		
+		fill(yellow);
+		strokeWeight(1);
+		ellipse(xbase+25, ybase+90, 10, 10);
+//		noStroke();	
+		fill(10);
+		text("Mag < 4.9", xbase+45, ybase+90);
+		// Setting the major earthquakes legend details
+		fill(color(255,0,0,100));
+		strokeWeight(2);
+		stroke(10);
+		stroke(color(255,0,0));
+		ellipse(xbase+25, ybase+120, 15, 15);
+		stroke(10);
+		fill(10);	
+		text("Mag > 5", xbase+45, ybase+120);		
+		
 	}
 }
