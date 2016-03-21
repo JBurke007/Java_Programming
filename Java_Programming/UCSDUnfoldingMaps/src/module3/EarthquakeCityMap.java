@@ -12,9 +12,14 @@ import processing.core.PImage;
 //Unfolding libraries
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.marker.Marker;
+import de.fhpotsdam.unfolding.marker.MultiMarker;
+import de.fhpotsdam.unfolding.marker.SimpleLinesMarker;
+import de.fhpotsdam.unfolding.data.Feature;
+import de.fhpotsdam.unfolding.data.GeoJSONReader;
 import de.fhpotsdam.unfolding.data.PointFeature;
 import de.fhpotsdam.unfolding.geo.Location;
 import de.fhpotsdam.unfolding.marker.SimplePointMarker;
+import de.fhpotsdam.unfolding.marker.SimplePolygonMarker;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
 import de.fhpotsdam.unfolding.utils.MapUtils;
@@ -116,9 +121,7 @@ public class EarthquakeCityMap extends PApplet {
 		    	((SimplePointMarker) markers.get(i)).setRadius(15);
 	    	}
 	    }
-	    // Plotting all markers that are added the marker list above.
-	    map.addMarkers(markers);
-	    
+		
 	    // These print statements show you (1) all of the relevant properties 
 	    // in the features, and (2) how to get one property and use it
 	    if (earthquakes.size() > 0) {
@@ -126,7 +129,43 @@ public class EarthquakeCityMap extends PApplet {
 	    	System.out.println(f.getProperties());
 	    	Object magObj = f.getProperty("magnitude");
 	    	float mag = Float.parseFloat(magObj.toString());	    
-	    }	  
+	    }
+		
+	    // Create a line linking USA to UK
+	    Location startLocation = new Location(32.9f, -117.2f);
+		Location endLocation = new Location(54.5570932f, -1.1560707f);
+		Location startLocation2 = new Location(54.5570932f, -1.1560707f);
+		Location endLocation2 = new Location(-25.2357798,115.0095668);
+		SimpleLinesMarker connectionMarker1 = new SimpleLinesMarker(startLocation, endLocation);
+		SimpleLinesMarker connectionMarker2 = new SimpleLinesMarker(startLocation2, endLocation2);
+		// Adding the connection lines from US to UK and UK to AUS
+		map.addMarkers(connectionMarker1,connectionMarker2);
+		
+		// Adding country tiles and coloring them
+		List<Feature> countries;
+		List<Marker> countryMarkers;
+		countries = GeoJSONReader.loadData(this, "countries.geo.json");
+		countryMarkers = MapUtils.createSimpleMarkers(countries);
+		map.addMarkers(countryMarkers);
+		
+		for (Marker marker : countryMarkers) {
+			// Find data for country of the current marker			
+			String countryId = marker.getId();
+			
+			// set the five eyes to red
+			if (countryId.equals("USA") | countryId.equals("GBR") | countryId.equals("CAN") | countryId.equals("AUS") | countryId.equals("NZL")) {
+				marker.setColor(color(255,0,0));
+				println("match" + countryId);
+			}
+			else{ // everything else blue
+				marker.setColor(color(150,150,150));
+				println(countryId);
+			}
+		}
+		
+		// Adding markers to the map
+		map.addMarkers(markers);
+		
 	}
 		
 	// A method to get the location for each earthquake in the RSS Feed

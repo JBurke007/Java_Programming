@@ -19,8 +19,10 @@ public class LandQuakeMarker extends EarthquakeMarker {
 		
 		// setting field in earthquake marker
 		isOnLand = true;
+		
 	}
-
+	
+	
 
 	@Override
 	public void drawEarthquake(PGraphics pg, float x, float y) {
@@ -31,7 +33,12 @@ public class LandQuakeMarker extends EarthquakeMarker {
 		
 		// HINT: Notice the radius variable in the EarthquakeMarker class
 		// and how it is set in the EarthquakeMarker constructor
+		//Save previous drawing style
+		pg.pushStyle();
 		
+		pg.ellipse(x, y, 8, 8);
+		// Restore previous drawing style
+		pg.popStyle();
 		// TODO: Implement this method
 		
 	}

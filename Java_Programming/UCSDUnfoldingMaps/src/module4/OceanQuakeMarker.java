@@ -28,8 +28,12 @@ public class OceanQuakeMarker extends EarthquakeMarker {
 		
 		// HINT: Notice the radius variable in the EarthquakeMarker class
 		// and how it is set in the EarthquakeMarker constructor
-		
+		//Save previous drawing style
+		pg.pushStyle();
 		// TODO: Implement this method
+		pg.rect(x, y, 10, 10);
+		//Restore previous drawing style
+		pg.popStyle();
 		
 	}
 	
