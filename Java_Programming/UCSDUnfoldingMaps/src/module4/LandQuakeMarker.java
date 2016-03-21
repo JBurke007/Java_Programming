@@ -35,7 +35,7 @@ public class LandQuakeMarker extends EarthquakeMarker {
 		// and how it is set in the EarthquakeMarker constructor
 		//Save previous drawing style
 		pg.pushStyle();
-		
+		// Code to draw a circle to represent a land quake.
 		pg.ellipse(x, y, 8, 8);
 		// Restore previous drawing style
 		pg.popStyle();

@@ -30,7 +30,7 @@ public class OceanQuakeMarker extends EarthquakeMarker {
 		// and how it is set in the EarthquakeMarker constructor
 		//Save previous drawing style
 		pg.pushStyle();
-		// TODO: Implement this method
+		// Code to draw a sqaure to represent an ocean quake.
 		pg.rect(x, y, 10, 10);
 		//Restore previous drawing style
 		pg.popStyle();
